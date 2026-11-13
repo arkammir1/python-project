@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "https://python-math-engine-api.onrender.com/api";
 const equations = [
   { expression: "(x - h)^2 + (y - k)^2 = r^2", note: "Equation of a circle" },
   { expression: "F = ma", note: "Newton's second law of motion" },
