@@ -1,0 +1,33 @@
+PYTHON MATH ENGINE — MOBILE / INSTALLABLE UPDATE
+
+This frontend is a Progressive Web App (PWA). It is still a website; install it from its HTTPS URL to add an app icon to a phone.
+
+Files to copy into your existing repository's frontend/ folder:
+- index.html
+- style.css
+- app.js
+- manifest.webmanifest
+- service-worker.js
+- icons/
+
+The API URL in app.js is set to https://python-math-engine-api.onrender.com/api.
+
+After copying, run from your existing project folder:
+  git add frontend
+  git commit -m "Make Math Engine mobile friendly and installable"
+  git push
+
+Render should automatically redeploy the Static Site.
+
+Install on iPhone:
+1. Open https://python-math-engine.onrender.com in Safari.
+2. Tap Share (square with upward arrow).
+3. Tap Add to Home Screen.
+4. Tap Add.
+
+Install on Android (Chrome):
+1. Open https://python-math-engine.onrender.com.
+2. Tap the three-dot menu.
+3. Tap Install app (or Add to Home screen), then confirm.
+
+The interface and static shell can load from cache after a prior visit, but calculations need an internet connection because they use the hosted Python backend.

@@ -39,3 +39,43 @@ footer { margin-top:auto; padding-top:42px; text-align:center; color:#555; font:
   .daily { padding:44px 0 36px; }
   .workspace,.result-panel { padding:21px 17px; }
 }
+
+
+/* Mobile and installable-app refinements */
+html { -webkit-text-size-adjust: 100%; }
+body { min-height: 100vh; min-height: 100svh; }
+.shell { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+.topbar { gap: 14px; align-items: center; }
+.topbar-actions { display:flex; align-items:center; gap:14px; }
+.install-button { border:1px solid #555; background:#151515; color:#fff; padding:10px 12px; font:11px 'DM Mono',monospace; letter-spacing:1px; cursor:pointer; min-height:40px; }
+.install-button[hidden] { display:none; }
+select, input, button { touch-action: manipulation; }
+select, input { font-size:16px; }
+button { -webkit-tap-highlight-color: transparent; }
+.solve, .upload { min-height:48px; }
+.plot { min-height:280px; overflow:hidden; }
+#equation { overflow-wrap:anywhere; }
+@media (max-width:600px) {
+  .shell { width:100%; padding-top:max(18px, env(safe-area-inset-top)); padding-bottom:max(18px, env(safe-area-inset-bottom)); }
+  .topbar { align-items:flex-start; padding-bottom:16px; }
+  .brand { font-size:12px; letter-spacing:2px; padding-top:6px; }
+  .topbar-actions { flex-direction:column-reverse; align-items:flex-end; gap:7px; }
+  .clock { font-size:10px; letter-spacing:.5px; }
+  #time { font-size:16px; }
+  .install-button { min-height:36px; padding:8px 10px; font-size:10px; }
+  .daily { padding:38px 0 30px; }
+  .daily h1 { font-size:clamp(23px, 7vw, 34px); }
+  .workspace { padding:20px 16px; }
+  .result-panel { padding:20px 16px; }
+  .range-row { gap:10px; }
+  .range-row > div { min-width:0; }
+  .answer { font-size:16px; }
+  .plot { min-height:260px; margin-left:-4px; width:calc(100% + 8px); }
+  footer { padding-top:32px; font-size:9px; letter-spacing:1.4px; }
+}
+@media (max-width:360px) {
+  .shell { padding-left:12px; padding-right:12px; }
+  .brand { letter-spacing:1px; }
+  .workspace { padding:18px 12px; }
+  .range-row { flex-direction:column; }
+}

@@ -120,3 +120,34 @@ document.getElementById("solve").addEventListener("click", async () => {
     button.innerHTML = 'CALCULATE <span>↗</span>';
   }
 });
+
+
+// PWA installation support (Android/desktop Chromium; iOS uses Share > Add to Home Screen).
+let deferredInstallPrompt = null;
+const installButton = document.getElementById("install-app");
+if (installButton) {
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    installButton.hidden = false;
+  });
+  installButton.addEventListener("click", async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    installButton.hidden = true;
+  });
+  window.addEventListener("appinstalled", () => {
+    installButton.hidden = true;
+    setStatus("Python Math Engine installed successfully.");
+  });
+}
+
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+      console.warn("Service worker registration failed:", error);
+    });
+  });
+}
