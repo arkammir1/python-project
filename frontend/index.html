@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Engine</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">MATH<span>ENGINE</span></div>
+      <div class="clock">
+        <div id="date">LOADING DATE</div>
+        <div id="time">--:--:--</div>
+      </div>
+    </header>
+
+    <section class="daily">
+      <p class="eyebrow">TODAY'S EQUATION</p>
+      <h1 id="equation">Loading equation...</h1>
+      <p id="equation-note" class="muted"></p>
+    </section>
+
+    <section class="workspace">
+      <label for="operation">SELECT OPERATION</label>
+      <select id="operation">
+        <option value="differentiate">Differentiation</option>
+        <option value="integrate">Integration</option>
+        <option value="maxima_minima">Maxima / Minima</option>
+        <option value="domain">Domain / Range / Continuity</option>
+        <option value="graph">2D Graph Plotting</option>
+        <option value="discontinuity">Discontinuity Analyzer</option>
+      </select>
+
+      <label for="function-input">ENTER FUNCTION</label>
+      <div class="input-wrap">
+        <input id="function-input" type="text" placeholder="Example: x^3 - 3x^2 + 2" autocomplete="off">
+        <button id="upload-trigger" class="upload" type="button" title="Upload a .txt file">↑</button>
+        <input id="file-input" type="file" accept=".txt" hidden>
+      </div>
+      <p class="hint">Use x as the variable. Examples: x^2, sin(x), 1/(x-2), sqrt(x).</p>
+
+      <div id="graph-range" class="range-row" hidden>
+        <div><label for="lower">LOWER X</label><input id="lower" type="number" value="-10"></div>
+        <div><label for="upper">UPPER X</label><input id="upper" type="number" value="10"></div>
+      </div>
+
+      <button id="solve" class="solve">CALCULATE <span>↗</span></button>
+      <p id="status" class="status" aria-live="polite"></p>
+    </section>
+
+    <section id="result-panel" class="result-panel" hidden>
+      <p class="eyebrow">RESULT</p>
+      <div id="answer" class="answer"></div>
+      <div id="steps" class="steps"></div>
+      <div id="plot" class="plot"></div>
+    </section>
+
+    <footer>THINK CLEARLY. SOLVE ANYTHING.</footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
