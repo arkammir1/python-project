@@ -1,14 +1,17 @@
 
 const API_URL = "https://python-math-engine-api.onrender.com/api";
 
-// Daily mathematics and physics equations
+// =========================================
+// DAILY MATHEMATICS AND PHYSICS EQUATIONS
+// =========================================
+
 const equations = [
   { expression: "(x - h)² + (y - k)² = r²", note: "Equation of a circle" },
   { expression: "F = ma", note: "Newton's second law of motion" },
   { expression: "e^(iπ) + 1 = 0", note: "Euler's identity" },
   { expression: "v = u + at", note: "First equation of motion" },
   { expression: "a² + b² = c²", note: "Pythagorean theorem" },
-  { expression: "E = mc²", note: "Mass–energy equivalence" },
+  { expression: "E = mc²", note: "Mass-energy equivalence" },
   { expression: "∇ · E = ρ / ε₀", note: "Gauss's law of electricity" },
   { expression: "∫ₐᵇ f(x) dx", note: "Definite integral" },
   { expression: "dy/dx = f'(x)", note: "Derivative of a function" },
@@ -17,21 +20,50 @@ const equations = [
   { expression: "p = mv", note: "Linear momentum" }
 ];
 
-// Elements
+// =========================================
+// ELEMENTS
+// =========================================
+
+const mathInput = document.getElementById("math-input");
 const functionInput = document.getElementById("function-input");
+
+const mathModeButton = document.getElementById("math-mode");
+const textModeButton = document.getElementById("text-mode");
+
 const operationArea = document.getElementById("operation-area");
 const operationButtons = document.querySelectorAll(".operation-button");
+
 const graphRange = document.getElementById("graph-range");
 const resultPanel = document.getElementById("result-panel");
 const plot = document.getElementById("plot");
 const status = document.getElementById("status");
-const solveButton = document.getElementById("submit-input");
 
+const solveButton = document.getElementById("submit-input");
+const clearButton = document.getElementById("clear-input");
+
+const cameraInput = document.getElementById("camera-input");
+const imageInput = document.getElementById("image-input");
+const imagePreview = document.getElementById("image-preview");
+const previewImage = document.getElementById("preview-image");
+
+let activeMode = "math";
 let selectedImage = null;
 let currentObjectUrl = null;
 let isCalculating = false;
+let resizeTimeout = null;
 
-// Clock
+// =========================================
+// MATHLIVE SETUP
+// =========================================
+
+if (mathInput) {
+  mathInput.mathVirtualKeyboardPolicy = "auto";
+}
+
+// =========================================
+// CLOCK
+// =========================================
+
 function updateClock() {
   const now = new Date();
 
@@ -47,7 +79,6 @@ function updateClock() {
     now.toLocaleTimeString("en-IN");
 }
 
-// Daily equation
 function showDailyEquation() {
   const dayNumber = Math.floor(Date.now() / 86400000);
   const item = equations[dayNumber % equations.length];
@@ -60,17 +91,73 @@ updateClock();
 showDailyEquation();
 setInterval(updateClock, 1000);
 
-// Status message
+// =========================================
+// INPUT MODE
+// =========================================
+
+function getActiveExpression() {
+  if (activeMode === "math") {
+    return mathInput.getValue("latex").trim();
+  }
+
+  return functionInput.value.trim();
+}
+
+function getInputFormat() {
+  return activeMode === "math" ? "latex" : "text";
+}
+
+function switchMode(mode) {
+  activeMode = mode;
+
+  const isMath = mode === "math";
+
+  mathInput.hidden = !isMath;
+  functionInput.hidden = isMath;
+
+  mathModeButton.classList.toggle("active", isMath);
+  textModeButton.classList.toggle("active", !isMath);
+
+  mathModeButton.setAttribute("aria-pressed", String(isMath));
+  textModeButton.setAttribute("aria-pressed", String(!isMath));
+
+  updateInputState();
+
+  if (isMath) {
+    mathInput.focus();
+  } else {
+    functionInput.focus();
+  }
+
+  resultPanel.hidden = true;
+  setStatus("");
+}
+
+mathModeButton.addEventListener("click", () => {
+  switchMode("math");
+});
+
+textModeButton.addEventListener("click", () => {
+  switchMode("text");
+});
+
+// =========================================
+// STATUS
+// =========================================
+
 function setStatus(message) {
   status.textContent = message;
 }
 
-// Show operations only after the user enters an equation
+// =========================================
+// INPUT STATE
+// =========================================
+
 function updateInputState() {
-  const hasText = functionInput.value.trim().length > 0;
+  const hasText = getActiveExpression().length > 0;
 
   operationArea.hidden = !hasText;
-  document.getElementById("clear-input").hidden = !hasText;
+  clearButton.hidden = !hasText;
 
   if (!hasText) {
     graphRange.hidden = true;
@@ -78,13 +165,20 @@ function updateInputState() {
 }
 
 function showOperations() {
-  if (!functionInput.value.trim()) {
+  if (!getActiveExpression()) {
     setStatus("Enter an equation first.");
-    functionInput.focus();
+
+    if (activeMode === "math") {
+      mathInput.focus();
+    } else {
+      functionInput.focus();
+    }
+
     return;
   }
 
   operationArea.hidden = false;
+
   operationArea.scrollIntoView({
     behavior: "smooth",
     block: "nearest"
@@ -93,8 +187,26 @@ function showOperations() {
   setStatus("Choose an operation.");
 }
 
+// =========================================
+// INPUT EVENTS
+// =========================================
+
+mathInput.addEventListener("input", () => {
+  updateInputState();
+  resultPanel.hidden = true;
+  setStatus("");
+});
+
+mathInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    showOperations();
+  }
+});
+
 function resizeInput() {
   functionInput.style.height = "auto";
+
   functionInput.style.height =
     Math.min(functionInput.scrollHeight, 160) + "px";
 }
@@ -106,7 +218,7 @@ functionInput.addEventListener("input", () => {
   setStatus("");
 });
 
-functionInput.addEventListener("keydown", (event) => {
+functionInput.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     showOperations();
@@ -115,22 +227,31 @@ functionInput.addEventListener("keydown", (event) => {
 
 solveButton.addEventListener("click", showOperations);
 
-// Clear input
-document.getElementById("clear-input").addEventListener("click", () => {
+// =========================================
+// CLEAR INPUT
+// =========================================
+
+clearButton.addEventListener("click", () => {
+  mathInput.setValue("");
   functionInput.value = "";
+
   resizeInput();
   updateInputState();
   clearImage();
+
   resultPanel.hidden = true;
   setStatus("");
-  functionInput.focus();
+
+  if (activeMode === "math") {
+    mathInput.focus();
+  } else {
+    functionInput.focus();
+  }
 });
 
-// Image capture and upload
-const cameraInput = document.getElementById("camera-input");
-const imageInput = document.getElementById("image-input");
-const imagePreview = document.getElementById("image-preview");
-const previewImage = document.getElementById("preview-image");
+// =========================================
+// IMAGE CAPTURE AND UPLOAD
+// =========================================
 
 document.getElementById("camera-trigger").addEventListener("click", () => {
   cameraInput.click();
@@ -172,6 +293,7 @@ function handleImageSelection(event) {
     "Image attached. Handwriting recognition is not connected yet.";
 
   setStatus("Image attached. Type the equation to continue.");
+
   event.target.value = "";
 }
 
@@ -192,40 +314,112 @@ document.getElementById("remove-image").addEventListener("click", () => {
   setStatus("Image removed.");
 });
 
-// Escape HTML before displaying backend responses
+// =========================================
+// SAFE HTML
+// =========================================
+
 function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, ch => ({
+  return String(value).replace(/[&<>"']/g, character => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
     "'": "&#039;"
-  })[ch]);
+  })[character]);
 }
 
-// Display mathematical answer
+// =========================================
+// DISPLAY ANSWER — IMPROVED RESULTS UI
+// =========================================
+
 function renderAnswer(value) {
   const target = document.getElementById("answer");
 
   if (Array.isArray(value)) {
-    target.innerHTML = value.length
-      ? value.map(point =>
-          `<div>x = ${escapeHtml(point.x)}, y = ${escapeHtml(point.y)} — ${escapeHtml(point.type)}</div>`
-        ).join("")
-      : "No critical points found.";
+    if (!value.length) {
+      target.innerHTML = `
+        <div class="answer-message">
+          No finite critical points were found.
+        </div>
+      `;
+      return;
+    }
 
-  } else if (value && typeof value === "object") {
-    target.innerHTML = Object.entries(value)
-      .map(([key, val]) =>
-        `<div><strong>${escapeHtml(key)}:</strong> ${escapeHtml(val)}</div>`
-      ).join("");
+    target.innerHTML = `
+      <div class="answer-grid">
+        ${value.map((point, index) => `
+          <div class="answer-card">
+            <div class="answer-card-label">
+              CRITICAL POINT ${index + 1}
+            </div>
 
-  } else {
-    target.textContent = value;
+            <div class="answer-coordinate">
+              <span>x</span>
+              <strong>${escapeHtml(point.x)}</strong>
+            </div>
+
+            <div class="answer-coordinate">
+              <span>f(x)</span>
+              <strong>${escapeHtml(point.y)}</strong>
+            </div>
+
+            <div class="answer-classification">
+              ${escapeHtml(point.type)}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    return;
   }
+
+  if (value && typeof value === "object") {
+    target.innerHTML = `
+      <div class="answer-grid">
+        ${Object.entries(value).map(([key, val]) => `
+          <div class="answer-card">
+            <div class="answer-card-label">
+              ${escapeHtml(key.replace(/_/g, " "))}
+            </div>
+
+            <div class="answer-value">
+              ${escapeHtml(val)}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+
+    return;
+  }
+
+  target.innerHTML = `
+    <div class="answer-main">
+      ${escapeHtml(value)}
+    </div>
+  `;
 }
 
-// Render responsive graph
+// =========================================
+// RENDER SOLUTION STEPS
+// =========================================
+
+function renderSteps(steps) {
+  const target = document.getElementById("steps");
+
+  target.innerHTML = (steps || []).map((step, index) => `
+    <div class="solution-step">
+      <div class="step-number">${index + 1}</div>
+      <div class="step-content">${escapeHtml(step)}</div>
+    </div>
+  `).join("");
+}
+
+// =========================================
+// PLOTLY GRAPH
+// =========================================
+
 async function renderGraph(graph) {
   if (!graph || typeof Plotly === "undefined") {
     return;
@@ -289,9 +483,12 @@ async function renderGraph(graph) {
   });
 }
 
-// Calculate selected operation
+// =========================================
+// CALCULATE
+// =========================================
+
 async function calculate(operationName) {
-  const expression = functionInput.value.trim();
+  const expression = getActiveExpression();
 
   if (!expression) {
     setStatus("Enter an equation first.");
@@ -305,7 +502,9 @@ async function calculate(operationName) {
 
   if (
     operationName === "graph" &&
-    (!Number.isFinite(lower) || !Number.isFinite(upper) || lower >= upper)
+    (!Number.isFinite(lower) ||
+      !Number.isFinite(upper) ||
+      lower >= upper)
   ) {
     setStatus("Enter a valid graph range. Upper X must be greater than Lower X.");
     return;
@@ -323,10 +522,11 @@ async function calculate(operationName) {
   resultPanel.hidden = true;
 
   const payload = {
-    expression,
+    expression: expression,
+    input_format: getInputFormat(),
     operation: operationName,
-    lower,
-    upper
+    lower: lower,
+    upper: upper
   };
 
   try {
@@ -341,15 +541,15 @@ async function calculate(operationName) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.detail || "Calculation failed.");
+      throw new Error(
+        typeof data.detail === "string"
+          ? data.detail
+          : "Calculation failed."
+      );
     }
 
     renderAnswer(data.answer);
-
-    document.getElementById("steps").innerHTML =
-      (data.steps || [])
-        .map(step => `<div>${escapeHtml(step)}</div>`)
-        .join("");
+    renderSteps(data.steps);
 
     resultPanel.hidden = false;
 
@@ -371,7 +571,11 @@ async function calculate(operationName) {
     });
 
   } catch (error) {
-    setStatus(error.message + " Please check your connection and try again.");
+    console.error("Calculation error:", error);
+
+    setStatus(
+      error.message + " Please check your connection and try again."
+    );
 
   } finally {
     isCalculating = false;
@@ -384,7 +588,10 @@ async function calculate(operationName) {
   }
 }
 
-// Operation selection
+// =========================================
+// OPERATION SELECTION
+// =========================================
+
 operationButtons.forEach(button => {
   button.addEventListener("click", () => {
     const operationName = button.dataset.operation;
@@ -393,6 +600,7 @@ operationButtons.forEach(button => {
 
     if (operationName === "graph") {
       graphRange.hidden = false;
+
       setStatus("Set your graph range, then select Plot Graph.");
 
       graphRange.scrollIntoView({
@@ -408,20 +616,32 @@ operationButtons.forEach(button => {
   });
 });
 
-// Confirm graph plotting
+// =========================================
+// GRAPH CONFIRMATION
+// =========================================
+
 document.getElementById("plot-confirm").addEventListener("click", () => {
   calculate("graph");
 });
 
-// Start a new calculation
+// =========================================
+// NEW CALCULATION
+// =========================================
+
 document.getElementById("new-calculation").addEventListener("click", () => {
   resultPanel.hidden = true;
   setStatus("Enter another equation.");
-  functionInput.focus();
+
+  if (activeMode === "math") {
+    mathInput.focus();
+  } else {
+    functionInput.focus();
+  }
 });
 
-// Keep graph fitted to screen
-let resizeTimeout;
+// =========================================
+// RESPONSIVE GRAPH
+// =========================================
 
 function resizeGraph() {
   clearTimeout(resizeTimeout);
@@ -444,13 +664,17 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", resizeGraph);
 }
 
-// PWA installation
+// =========================================
+// PWA INSTALLATION
+// =========================================
+
 let deferredInstallPrompt = null;
 
 const installButton = document.getElementById("install-app");
 
-window.addEventListener("beforeinstallprompt", (event) => {
+window.addEventListener("beforeinstallprompt", event => {
   event.preventDefault();
+
   deferredInstallPrompt = event;
   installButton.hidden = false;
 });
@@ -459,6 +683,7 @@ installButton.addEventListener("click", async () => {
   if (!deferredInstallPrompt) return;
 
   deferredInstallPrompt.prompt();
+
   await deferredInstallPrompt.userChoice;
 
   deferredInstallPrompt = null;
@@ -470,7 +695,10 @@ window.addEventListener("appinstalled", () => {
   setStatus("Python Math Engine installed successfully.");
 });
 
-// Service worker
+// =========================================
+// SERVICE WORKER
+// =========================================
+
 if ("serviceWorker" in navigator && location.protocol === "https:") {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./service-worker.js")
@@ -479,3 +707,10 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
       });
   });
 }
+
+// =========================================
+// INITIAL STATE
+// =========================================
+
+switchMode("math");
+updateInputState();

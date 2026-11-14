@@ -1,4 +1,6 @@
+
 fastapi
 uvicorn[standard]
 sympy
 numpy
+latex2sympy2-extended[antlr4_13_2]==1.11.0

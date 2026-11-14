@@ -17,6 +17,8 @@
   <link rel="stylesheet" href="style.css">
 
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
+  <script defer src="app.js"></script>
 </head>
 
 <body>
@@ -46,25 +48,54 @@
     <section class="workspace">
 
       <div class="input-box">
+
+        <div class="input-mode-switch">
+          <button
+            id="math-mode"
+            class="mode-button active"
+            type="button"
+            aria-pressed="true">
+            Math Editor
+          </button>
+
+          <button
+            id="text-mode"
+            class="mode-button"
+            type="button"
+            aria-pressed="false">
+            Text Input
+          </button>
+        </div>
+
+        <math-field
+          id="math-input"
+          math-virtual-keyboard-policy="auto"
+          smart-fence
+          aria-label="Enter a mathematical expression">
+        </math-field>
+
         <textarea
           id="function-input"
           rows="1"
-          placeholder="Ask a mathematical question..."
+          placeholder="Enter an expression, e.g. sin(x) + x**2"
           autocomplete="off"
           spellcheck="false"
           aria-label="Enter a mathematical expression"
-        ></textarea>
+          hidden>
+        </textarea>
 
         <div class="input-actions">
           <div class="attachment-actions">
-            <button id="camera-trigger" class="icon-button" type="button" aria-label="Capture handwritten equation" title="Take a photo">
+            <button id="camera-trigger" class="icon-button" type="button"
+              aria-label="Capture handwritten equation" title="Take a photo">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/>
                 <circle cx="12" cy="13" r="3.5"/>
               </svg>
             </button>
 
-            <button id="upload-trigger" class="icon-button" type="button" aria-label="Upload handwritten equation" title="Upload an image">
+            <button id="upload-trigger" class="icon-button" type="button"
+              aria-label="Upload handwritten equation" title="Upload an image">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 16V4m-4 4 4-4 4 4"/>
                 <path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/>
@@ -72,11 +103,13 @@
             </button>
           </div>
 
-          <button id="clear-input" class="clear-button" type="button" aria-label="Clear input" hidden>
+          <button id="clear-input" class="clear-button" type="button"
+            aria-label="Clear input" hidden>
             CLEAR
           </button>
 
-          <button id="submit-input" class="send-button" type="button" aria-label="Show operations">
+          <button id="submit-input" class="send-button" type="button"
+            aria-label="Show operations">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 19V5m-7 7 7-7 7 7"/>
             </svg>
@@ -84,16 +117,21 @@
         </div>
       </div>
 
-      <input id="camera-input" type="file" accept="image/*" capture="environment" hidden>
+      <input id="camera-input" type="file" accept="image/*"
+        capture="environment" hidden>
       <input id="image-input" type="file" accept="image/*" hidden>
 
       <div id="image-preview" class="image-preview" hidden>
         <img id="preview-image" alt="Selected handwritten equation">
-        <button id="remove-image" type="button" aria-label="Remove image">×</button>
+        <button id="remove-image" type="button"
+          aria-label="Remove image">×</button>
         <p id="image-status">Image attached</p>
       </div>
 
-      <p class="input-hint">Type an equation, capture it, or upload a handwritten image.</p>
+      <p class="input-hint">
+        Enter mathematics, use the virtual keyboard, capture an image,
+        or upload an equation.
+      </p>
 
       <div id="operation-area" class="operation-area" hidden>
         <p class="eyebrow">WHAT WOULD YOU LIKE TO DO?</p>
@@ -129,10 +167,12 @@
             <label for="lower">LOWER X</label>
             <input id="lower" type="number" value="-10">
           </div>
+
           <div>
             <label for="upper">UPPER X</label>
             <input id="upper" type="number" value="10">
           </div>
+
           <button id="plot-confirm" type="button">PLOT GRAPH ↗</button>
         </div>
       </div>
@@ -157,7 +197,5 @@
     <footer>THINK CLEARLY. SOLVE ANYTHING.</footer>
 
   </main>
-
-  <script src="app.js"></script>
 </body>
 </html>
