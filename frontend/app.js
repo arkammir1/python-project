@@ -1,20 +1,37 @@
 
 const API_URL = "https://python-math-engine-api.onrender.com/api";
 
+// Daily mathematics and physics equations
 const equations = [
-  { expression: "(x - h)^2 + (y - k)^2 = r^2", note: "Equation of a circle" },
+  { expression: "(x - h)² + (y - k)² = r²", note: "Equation of a circle" },
   { expression: "F = ma", note: "Newton's second law of motion" },
   { expression: "e^(iπ) + 1 = 0", note: "Euler's identity" },
   { expression: "v = u + at", note: "First equation of motion" },
   { expression: "a² + b² = c²", note: "Pythagorean theorem" },
   { expression: "E = mc²", note: "Mass–energy equivalence" },
-  { expression: "∇ · E = ρ / ε₀", note: "Gauss's law (electricity)" },
+  { expression: "∇ · E = ρ / ε₀", note: "Gauss's law of electricity" },
   { expression: "∫ₐᵇ f(x) dx", note: "Definite integral" },
   { expression: "dy/dx = f'(x)", note: "Derivative of a function" },
-  { expression: "PV = nRT", note: "Ideal gas law" }
+  { expression: "PV = nRT", note: "Ideal gas law" },
+  { expression: "∇²ψ + k²ψ = 0", note: "Helmholtz equation" },
+  { expression: "p = mv", note: "Linear momentum" }
 ];
 
-// Clock and daily equation
+// Elements
+const functionInput = document.getElementById("function-input");
+const operationArea = document.getElementById("operation-area");
+const operationButtons = document.querySelectorAll(".operation-button");
+const graphRange = document.getElementById("graph-range");
+const resultPanel = document.getElementById("result-panel");
+const plot = document.getElementById("plot");
+const status = document.getElementById("status");
+const solveButton = document.getElementById("submit-input");
+
+let selectedImage = null;
+let currentObjectUrl = null;
+let isCalculating = false;
+
+// Clock
 function updateClock() {
   const now = new Date();
 
@@ -30,6 +47,7 @@ function updateClock() {
     now.toLocaleTimeString("en-IN");
 }
 
+// Daily equation
 function showDailyEquation() {
   const dayNumber = Math.floor(Date.now() / 86400000);
   const item = equations[dayNumber % equations.length];
@@ -42,43 +60,139 @@ updateClock();
 showDailyEquation();
 setInterval(updateClock, 1000);
 
-// Elements
-const operation = document.getElementById("operation");
-const graphRange = document.getElementById("graph-range");
-const resultPanel = document.getElementById("result-panel");
-const plot = document.getElementById("plot");
-const solveButton = document.getElementById("solve");
+// Status message
+function setStatus(message) {
+  status.textContent = message;
+}
 
-// Show graph range only for graph operation
-operation.addEventListener("change", () => {
-  graphRange.hidden = operation.value !== "graph";
+// Show operations only after the user enters an equation
+function updateInputState() {
+  const hasText = functionInput.value.trim().length > 0;
+
+  operationArea.hidden = !hasText;
+  document.getElementById("clear-input").hidden = !hasText;
+
+  if (!hasText) {
+    graphRange.hidden = true;
+  }
+}
+
+function showOperations() {
+  if (!functionInput.value.trim()) {
+    setStatus("Enter an equation first.");
+    functionInput.focus();
+    return;
+  }
+
+  operationArea.hidden = false;
+  operationArea.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest"
+  });
+
+  setStatus("Choose an operation.");
+}
+
+function resizeInput() {
+  functionInput.style.height = "auto";
+  functionInput.style.height =
+    Math.min(functionInput.scrollHeight, 160) + "px";
+}
+
+functionInput.addEventListener("input", () => {
+  updateInputState();
+  resizeInput();
+  resultPanel.hidden = true;
+  setStatus("");
 });
 
-// File upload
+functionInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    showOperations();
+  }
+});
+
+solveButton.addEventListener("click", showOperations);
+
+// Clear input
+document.getElementById("clear-input").addEventListener("click", () => {
+  functionInput.value = "";
+  resizeInput();
+  updateInputState();
+  clearImage();
+  resultPanel.hidden = true;
+  setStatus("");
+  functionInput.focus();
+});
+
+// Image capture and upload
+const cameraInput = document.getElementById("camera-input");
+const imageInput = document.getElementById("image-input");
+const imagePreview = document.getElementById("image-preview");
+const previewImage = document.getElementById("preview-image");
+
+document.getElementById("camera-trigger").addEventListener("click", () => {
+  cameraInput.click();
+});
+
 document.getElementById("upload-trigger").addEventListener("click", () => {
-  document.getElementById("file-input").click();
+  imageInput.click();
 });
 
-document.getElementById("file-input").addEventListener("change", async (event) => {
+cameraInput.addEventListener("change", handleImageSelection);
+imageInput.addEventListener("change", handleImageSelection);
+
+function handleImageSelection(event) {
   const file = event.target.files[0];
 
   if (!file) return;
 
-  if (file.size > 10000) {
-    setStatus("Please upload a text file smaller than 10 KB.");
+  if (!file.type.startsWith("image/")) {
+    setStatus("Please select an image file.");
+    event.target.value = "";
     return;
   }
 
-  document.getElementById("function-input").value =
-    (await file.text()).trim();
-});
+  if (file.size > 10 * 1024 * 1024) {
+    setStatus("Please select an image smaller than 10 MB.");
+    event.target.value = "";
+    return;
+  }
 
-// Status
-function setStatus(message) {
-  document.getElementById("status").textContent = message;
+  clearImage();
+
+  selectedImage = file;
+  currentObjectUrl = URL.createObjectURL(file);
+
+  previewImage.src = currentObjectUrl;
+  imagePreview.hidden = false;
+
+  document.getElementById("image-status").textContent =
+    "Image attached. Handwriting recognition is not connected yet.";
+
+  setStatus("Image attached. Type the equation to continue.");
+  event.target.value = "";
 }
 
-// Safe HTML output
+function clearImage() {
+  selectedImage = null;
+
+  if (currentObjectUrl) {
+    URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = null;
+  }
+
+  previewImage.removeAttribute("src");
+  imagePreview.hidden = true;
+}
+
+document.getElementById("remove-image").addEventListener("click", () => {
+  clearImage();
+  setStatus("Image removed.");
+});
+
+// Escape HTML before displaying backend responses
 function escapeHtml(value) {
   return String(value).replace(/[&<>"']/g, ch => ({
     "&": "&amp;",
@@ -89,14 +203,14 @@ function escapeHtml(value) {
   })[ch]);
 }
 
-// Render mathematical answer
+// Display mathematical answer
 function renderAnswer(value) {
   const target = document.getElementById("answer");
 
   if (Array.isArray(value)) {
     target.innerHTML = value.length
-      ? value.map(p =>
-          `<div>x = ${escapeHtml(p.x)}, y = ${escapeHtml(p.y)} — ${escapeHtml(p.type)}</div>`
+      ? value.map(point =>
+          `<div>x = ${escapeHtml(point.x)}, y = ${escapeHtml(point.y)} — ${escapeHtml(point.type)}</div>`
         ).join("")
       : "No critical points found.";
 
@@ -111,20 +225,17 @@ function renderAnswer(value) {
   }
 }
 
-// Graph rendering
+// Render responsive graph
 async function renderGraph(graph) {
-  if (!graph || !plot || typeof Plotly === "undefined") {
+  if (!graph || typeof Plotly === "undefined") {
     return;
   }
 
-  // Remove previous graph
   if (plot.data) {
     Plotly.purge(plot);
   }
 
   plot.innerHTML = "";
-
-  // Ensure graph container has measurable dimensions
   plot.style.width = "100%";
   plot.style.maxWidth = "100%";
 
@@ -136,16 +247,16 @@ async function renderGraph(graph) {
       type: "scatter",
       mode: "lines",
       line: {
-        color: "#f5f5f5",
+        color: "#ffffff",
         width: 2
       }
     }],
     {
       autosize: true,
-      paper_bgcolor: "#0d0d0d",
-      plot_bgcolor: "#0d0d0d",
+      paper_bgcolor: "#000000",
+      plot_bgcolor: "#000000",
       font: {
-        color: "#ddd",
+        color: "#dddddd",
         size: 12
       },
       margin: {
@@ -157,12 +268,12 @@ async function renderGraph(graph) {
       },
       xaxis: {
         gridcolor: "#292929",
-        zerolinecolor: "#666",
+        zerolinecolor: "#777777",
         automargin: true
       },
       yaxis: {
         gridcolor: "#292929",
-        zerolinecolor: "#666",
+        zerolinecolor: "#777777",
         automargin: true
       }
     },
@@ -173,35 +284,50 @@ async function renderGraph(graph) {
     }
   );
 
-  // Force correct dimensions after rendering
   requestAnimationFrame(() => {
     Plotly.Plots.resize(plot);
   });
 }
 
-// Calculate button
-solveButton.addEventListener("click", async () => {
-  const expression =
-    document.getElementById("function-input").value.trim();
+// Calculate selected operation
+async function calculate(operationName) {
+  const expression = functionInput.value.trim();
 
   if (!expression) {
-    setStatus("Enter a function first.");
+    setStatus("Enter an equation first.");
     return;
   }
 
-  const payload = {
-    expression,
-    operation: operation.value,
-    lower: Number(document.getElementById("lower").value),
-    upper: Number(document.getElementById("upper").value)
-  };
+  if (isCalculating) return;
 
-  solveButton.disabled = true;
-  solveButton.textContent = "CALCULATING...";
+  const lower = Number(document.getElementById("lower").value);
+  const upper = Number(document.getElementById("upper").value);
+
+  if (
+    operationName === "graph" &&
+    (!Number.isFinite(lower) || !Number.isFinite(upper) || lower >= upper)
+  ) {
+    setStatus("Enter a valid graph range. Upper X must be greater than Lower X.");
+    return;
+  }
+
+  isCalculating = true;
+
+  operationButtons.forEach(button => {
+    button.disabled = true;
+  });
+
+  document.getElementById("plot-confirm").disabled = true;
 
   setStatus("Working through the mathematics...");
-
   resultPanel.hidden = true;
+
+  const payload = {
+    expression,
+    operation: operationName,
+    lower,
+    upper
+  };
 
   try {
     const response = await fetch(`${API_URL}/analyze`, {
@@ -225,31 +351,76 @@ solveButton.addEventListener("click", async () => {
         .map(step => `<div>${escapeHtml(step)}</div>`)
         .join("");
 
-    // Show result panel BEFORE Plotly calculates graph dimensions
     resultPanel.hidden = false;
 
-    // Render graph only when backend provides graph data
     if (data.graph) {
       await renderGraph(data.graph);
     } else {
-      if (plot.data) {
+      if (plot.data && typeof Plotly !== "undefined") {
         Plotly.purge(plot);
       }
+
       plot.innerHTML = "";
     }
 
     setStatus("Calculation complete.");
 
+    resultPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
   } catch (error) {
-    setStatus(error.message + " Is the Python server running?");
+    setStatus(error.message + " Please check your connection and try again.");
 
   } finally {
-    solveButton.disabled = false;
-    solveButton.innerHTML = 'CALCULATE <span>↗</span>';
+    isCalculating = false;
+
+    operationButtons.forEach(button => {
+      button.disabled = false;
+    });
+
+    document.getElementById("plot-confirm").disabled = false;
   }
+}
+
+// Operation selection
+operationButtons.forEach(button => {
+  button.addEventListener("click", () => {
+    const operationName = button.dataset.operation;
+
+    resultPanel.hidden = true;
+
+    if (operationName === "graph") {
+      graphRange.hidden = false;
+      setStatus("Set your graph range, then select Plot Graph.");
+
+      graphRange.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+      });
+
+      return;
+    }
+
+    graphRange.hidden = true;
+    calculate(operationName);
+  });
 });
 
-// Keep graph fitted to screen during resizing and rotation
+// Confirm graph plotting
+document.getElementById("plot-confirm").addEventListener("click", () => {
+  calculate("graph");
+});
+
+// Start a new calculation
+document.getElementById("new-calculation").addEventListener("click", () => {
+  resultPanel.hidden = true;
+  setStatus("Enter another equation.");
+  functionInput.focus();
+});
+
+// Keep graph fitted to screen
 let resizeTimeout;
 
 function resizeGraph() {
@@ -269,38 +440,35 @@ function resizeGraph() {
 window.addEventListener("resize", resizeGraph);
 window.addEventListener("orientationchange", resizeGraph);
 
-// Detect mobile visual viewport changes
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", resizeGraph);
 }
 
-// PWA installation support
+// PWA installation
 let deferredInstallPrompt = null;
 
 const installButton = document.getElementById("install-app");
 
-if (installButton) {
-  window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    installButton.hidden = false;
-  });
+window.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  installButton.hidden = false;
+});
 
-  installButton.addEventListener("click", async () => {
-    if (!deferredInstallPrompt) return;
+installButton.addEventListener("click", async () => {
+  if (!deferredInstallPrompt) return;
 
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
 
-    deferredInstallPrompt = null;
-    installButton.hidden = true;
-  });
+  deferredInstallPrompt = null;
+  installButton.hidden = true;
+});
 
-  window.addEventListener("appinstalled", () => {
-    installButton.hidden = true;
-    setStatus("Python Math Engine installed successfully.");
-  });
-}
+window.addEventListener("appinstalled", () => {
+  installButton.hidden = true;
+  setStatus("Python Math Engine installed successfully.");
+});
 
 // Service worker
 if ("serviceWorker" in navigator && location.protocol === "https:") {

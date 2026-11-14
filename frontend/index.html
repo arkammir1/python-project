@@ -1,76 +1,163 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Python Math Engine</title>
-  <meta name="theme-color" content="#050505">
-  <meta name="description" content="Explore differentiation, integration, graphs and more with Python Math Engine.">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Explore mathematics with Python Math Engine.">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Math Engine">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="style.css">
+
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
+
 <body>
   <main class="shell">
+
     <header class="topbar">
-      <div class="brand">MATH<span>ENGINE</span></div>
+      <a class="brand" href="./">PYTHON MATH ENGINE</a>
+
       <div class="topbar-actions">
-        <button id="install-app" class="install-button" type="button" hidden>INSTALL APP</button>
         <div class="clock">
-        <div id="date">LOADING DATE</div>
-        <div id="time">--:--:--</div>
+          <div id="date">LOADING DATE</div>
+          <div id="time">--:--:--</div>
         </div>
+
+        <button id="install-app" class="install-button" type="button" hidden>
+          INSTALL
+        </button>
       </div>
     </header>
 
     <section class="daily">
-      <p class="eyebrow">TODAY'S EQUATION</p>
+      <p class="eyebrow">EQUATION OF THE DAY</p>
       <h1 id="equation">Loading equation...</h1>
-      <p id="equation-note" class="muted"></p>
+      <p id="equation-note" class="equation-note"></p>
     </section>
 
     <section class="workspace">
-      <label for="operation">SELECT OPERATION</label>
-      <select id="operation">
-        <option value="differentiate">Differentiation</option>
-        <option value="integrate">Integration</option>
-        <option value="maxima_minima">Maxima / Minima</option>
-        <option value="domain">Domain / Range / Continuity</option>
-        <option value="graph">2D Graph Plotting</option>
-        <option value="discontinuity">Discontinuity Analyzer</option>
-      </select>
 
-      <label for="function-input">ENTER FUNCTION</label>
-      <div class="input-wrap">
-        <input id="function-input" type="text" placeholder="Example: x^3 - 3x^2 + 2" autocomplete="off">
-        <button id="upload-trigger" class="upload" type="button" title="Upload a .txt file">↑</button>
-        <input id="file-input" type="file" accept=".txt" hidden>
+      <div class="input-box">
+        <textarea
+          id="function-input"
+          rows="1"
+          placeholder="Ask a mathematical question..."
+          autocomplete="off"
+          spellcheck="false"
+          aria-label="Enter a mathematical expression"
+        ></textarea>
+
+        <div class="input-actions">
+          <div class="attachment-actions">
+            <button id="camera-trigger" class="icon-button" type="button" aria-label="Capture handwritten equation" title="Take a photo">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/>
+                <circle cx="12" cy="13" r="3.5"/>
+              </svg>
+            </button>
+
+            <button id="upload-trigger" class="icon-button" type="button" aria-label="Upload handwritten equation" title="Upload an image">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 16V4m-4 4 4-4 4 4"/>
+                <path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/>
+              </svg>
+            </button>
+          </div>
+
+          <button id="clear-input" class="clear-button" type="button" aria-label="Clear input" hidden>
+            CLEAR
+          </button>
+
+          <button id="submit-input" class="send-button" type="button" aria-label="Show operations">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 19V5m-7 7 7-7 7 7"/>
+            </svg>
+          </button>
+        </div>
       </div>
-      <p class="hint">Use x as the variable. Examples: x^2, sin(x), 1/(x-2), sqrt(x).</p>
 
-      <div id="graph-range" class="range-row" hidden>
-        <div><label for="lower">LOWER X</label><input id="lower" type="number" value="-10"></div>
-        <div><label for="upper">UPPER X</label><input id="upper" type="number" value="10"></div>
+      <input id="camera-input" type="file" accept="image/*" capture="environment" hidden>
+      <input id="image-input" type="file" accept="image/*" hidden>
+
+      <div id="image-preview" class="image-preview" hidden>
+        <img id="preview-image" alt="Selected handwritten equation">
+        <button id="remove-image" type="button" aria-label="Remove image">×</button>
+        <p id="image-status">Image attached</p>
       </div>
 
-      <button id="solve" class="solve">CALCULATE <span>↗</span></button>
+      <p class="input-hint">Type an equation, capture it, or upload a handwritten image.</p>
+
+      <div id="operation-area" class="operation-area" hidden>
+        <p class="eyebrow">WHAT WOULD YOU LIKE TO DO?</p>
+
+        <div class="operation-list">
+          <button class="operation-button" data-operation="differentiate" type="button">
+            Differentiate <span>↗</span>
+          </button>
+
+          <button class="operation-button" data-operation="integrate" type="button">
+            Integrate <span>↗</span>
+          </button>
+
+          <button class="operation-button" data-operation="graph" type="button">
+            Plot graph <span>↗</span>
+          </button>
+
+          <button class="operation-button" data-operation="maxima_minima" type="button">
+            Maxima / Minima <span>↗</span>
+          </button>
+
+          <button class="operation-button" data-operation="domain" type="button">
+            Domain / Range / Continuity <span>↗</span>
+          </button>
+
+          <button class="operation-button" data-operation="discontinuity" type="button">
+            Discontinuity <span>↗</span>
+          </button>
+        </div>
+
+        <div id="graph-range" class="range-row" hidden>
+          <div>
+            <label for="lower">LOWER X</label>
+            <input id="lower" type="number" value="-10">
+          </div>
+          <div>
+            <label for="upper">UPPER X</label>
+            <input id="upper" type="number" value="10">
+          </div>
+          <button id="plot-confirm" type="button">PLOT GRAPH ↗</button>
+        </div>
+      </div>
+
       <p id="status" class="status" aria-live="polite"></p>
     </section>
 
     <section id="result-panel" class="result-panel" hidden>
-      <p class="eyebrow">RESULT</p>
+      <div class="result-heading">
+        <p class="eyebrow">RESULT</p>
+        <button id="new-calculation" type="button">NEW CALCULATION</button>
+      </div>
+
       <div id="answer" class="answer"></div>
+
+      <div class="steps-heading">STEP-BY-STEP SOLUTION</div>
       <div id="steps" class="steps"></div>
+
       <div id="plot" class="plot"></div>
     </section>
 
     <footer>THINK CLEARLY. SOLVE ANYTHING.</footer>
+
   </main>
+
   <script src="app.js"></script>
 </body>
 </html>
